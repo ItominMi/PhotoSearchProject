@@ -20,6 +20,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "BASE_URL", "\"https://api.pexels.com/\"")
+        buildConfigField("String", "API_KEY", "\"t0jwpbZToLFO4gJCm6CsqSHP3w3hSSxJqVRkOghMbrLNT097mywoULXM\"")
     }
 
     buildTypes {
@@ -40,6 +43,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
