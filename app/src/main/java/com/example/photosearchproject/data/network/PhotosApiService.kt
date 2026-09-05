@@ -6,7 +6,6 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface PhotosApiService {
-
     @GET("v1/search")
     suspend fun getPhotos(
         @Query("query") query: String,
