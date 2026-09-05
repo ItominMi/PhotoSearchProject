@@ -25,15 +25,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.photosearchproject.R
 import com.example.photosearchproject.domain.model.Photo
 import com.example.photosearchproject.presentation.components.CustomToolbar
 import com.example.photosearchproject.presentation.components.ToolbarType
+import com.example.photosearchproject.presentation.mainscreen.Dimens.HORIZONTAL_PADDING
+import com.example.photosearchproject.presentation.mainscreen.Dimens.ITEM_AUTHOR_TEXT_PADDING
+import com.example.photosearchproject.presentation.mainscreen.Dimens.ITEM_ELEVATION
+import com.example.photosearchproject.presentation.mainscreen.Dimens.ITEM_HEIGHT
+import com.example.photosearchproject.presentation.mainscreen.Dimens.ITEM_IMAGE_PART_HEIGHT
+import com.example.photosearchproject.presentation.mainscreen.Dimens.ITEM_TOP_PADDING
+import com.example.photosearchproject.presentation.mainscreen.Dimens.LOADING_INDICATOR_PADDING
+import com.example.photosearchproject.presentation.mainscreen.Dimens.LOADING_INDICATOR_SIZE
 
 private const val THRESHOLD = 5
 
@@ -89,7 +98,7 @@ fun MainScreenContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Error: ${screenState.message}",
+                        text = stringResource(R.string.error_message, screenState.message),
                         color = Color.DarkGray,
                         textAlign = TextAlign.Center
                     )
@@ -111,7 +120,7 @@ fun PhotoList(
         derivedStateOf {
             val size = state.layoutInfo.totalItemsCount
             val lastVisible = state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            size > 0 && lastVisible >= size - THRESHOLD
+            !hasReachedLastPage && size > 0 && lastVisible >= size - THRESHOLD
         }
     }
 
@@ -124,7 +133,7 @@ fun PhotoList(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 18.dp),
+            .padding(horizontal = HORIZONTAL_PADDING),
         state = state,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -137,10 +146,10 @@ fun PhotoList(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
+                        .padding(LOADING_INDICATOR_PADDING),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(LOADING_INDICATOR_SIZE))
                 }
             }
         }
@@ -151,16 +160,16 @@ fun PhotoList(
 fun PhotoItem(photo: Photo, onClick: (String) -> Unit) {
     ElevatedCard(
         modifier = Modifier
-            .padding(top = 12.dp)
+            .padding(top = ITEM_TOP_PADDING)
             .fillMaxWidth()
-            .height(230.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+            .height(ITEM_HEIGHT),
+        elevation = CardDefaults.cardElevation(defaultElevation = ITEM_ELEVATION)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(ITEM_IMAGE_PART_HEIGHT)
                     .clickable {
                         onClick(photo.originalUrl)
                     },
@@ -172,7 +181,7 @@ fun PhotoItem(photo: Photo, onClick: (String) -> Unit) {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.White)
-                    .padding(4.dp),
+                    .padding(ITEM_AUTHOR_TEXT_PADDING),
                 textAlign = TextAlign.Start,
                 fontWeight = FontWeight.Bold,
                 color = Color.DarkGray,
