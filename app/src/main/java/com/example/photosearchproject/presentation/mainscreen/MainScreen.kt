@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -76,7 +77,9 @@ fun MainScreenContent(
         when (screenState) {
             is MainScreenState.Loading -> {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag(MAIN_SCREEN_LOADING_INDICATOR_TAG),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -94,7 +97,9 @@ fun MainScreenContent(
 
             is MainScreenState.Error -> {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag(MAIN_SCREEN_ERROR_TAG),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -133,7 +138,8 @@ fun PhotoList(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = HORIZONTAL_PADDING),
+            .padding(horizontal = HORIZONTAL_PADDING)
+            .testTag(MAIN_SCREEN_PHOTO_LIST_TAG),
         state = state,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -162,7 +168,8 @@ fun PhotoItem(photo: Photo, onClick: (String) -> Unit) {
         modifier = Modifier
             .padding(top = ITEM_TOP_PADDING)
             .fillMaxWidth()
-            .height(ITEM_HEIGHT),
+            .height(ITEM_HEIGHT)
+            .testTag(MAIN_SCREEN_ITEM_TAG),
         elevation = CardDefaults.cardElevation(defaultElevation = ITEM_ELEVATION)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -190,3 +197,8 @@ fun PhotoItem(photo: Photo, onClick: (String) -> Unit) {
         }
     }
 }
+
+const val MAIN_SCREEN_LOADING_INDICATOR_TAG = "loading_indicator"
+const val MAIN_SCREEN_PHOTO_LIST_TAG = "photo_indicator"
+const val MAIN_SCREEN_ERROR_TAG = "error_indicator"
+const val MAIN_SCREEN_ITEM_TAG = "item_indicator"
