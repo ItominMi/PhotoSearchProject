@@ -2,12 +2,13 @@ package com.example.photosearchproject.presentation.mainscreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -65,10 +66,9 @@ fun MainScreenContent(
 
         when (screenState) {
             is MainScreenState.Loading -> {
-                Column(
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
@@ -77,16 +77,16 @@ fun MainScreenContent(
             is MainScreenState.Success -> {
                 PhotoList(
                     photos = screenState.photos,
+                    hasReachedLastPage = screenState.hasReachedLastPage,
                     onPhotoClick = onPhotoClick,
                     onFetchNext = onFetchNext
                 )
             }
 
             is MainScreenState.Error -> {
-                Column(
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "Error: ${screenState.message}",
@@ -102,6 +102,7 @@ fun MainScreenContent(
 @Composable
 fun PhotoList(
     photos: List<Photo>,
+    hasReachedLastPage: Boolean,
     onPhotoClick: (String) -> Unit,
     onFetchNext: () -> Unit
 ) {
@@ -109,7 +110,7 @@ fun PhotoList(
     val loadMore by remember {
         derivedStateOf {
             val size = state.layoutInfo.totalItemsCount
-            val lastVisible = state.layoutInfo.visibleItemsInfo.lastIndex
+            val lastVisible = state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             size > 0 && lastVisible >= size - THRESHOLD
         }
     }
@@ -129,6 +130,19 @@ fun PhotoList(
     ) {
         itemsIndexed(photos, key = { _, item -> item.id }) { _, item ->
             PhotoItem(item, onPhotoClick)
+        }
+
+        if (!hasReachedLastPage) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+            }
         }
     }
 }

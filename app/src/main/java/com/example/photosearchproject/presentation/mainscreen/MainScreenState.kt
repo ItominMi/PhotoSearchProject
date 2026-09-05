@@ -6,8 +6,9 @@ sealed class MainScreenState {
     data object Loading : MainScreenState()
     data class Error(val message: String) : MainScreenState()
     data class Success(
-        val photos: List<Photo>
-    )
+        val photos: List<Photo>,
+        val hasReachedLastPage: Boolean = false
+    ) : MainScreenState()
 }
 
 sealed class MainScreenIntent {
