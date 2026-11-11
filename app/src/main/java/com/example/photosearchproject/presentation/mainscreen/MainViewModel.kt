@@ -64,20 +64,21 @@ class MainViewModel @Inject constructor(
 
     private fun handleFetchNextPage() {
         if (isLoading) return
-        val currentState = _state.value as MainScreenState.Success
+        val currentState = _state.value as? MainScreenState.Success ?: return
         if (currentState.hasReachedLastPage) return
-        currentPage++
+        val nextPage = currentPage + 1
         viewModelScope.launch {
-            fetchData()
+            fetchData(nextPage)
         }
     }
 
-    private suspend fun fetchData() {
+    private suspend fun fetchData(page: Int = currentPage) {
         if (isLoading) return
         isLoading = true
-        mainUseCase.getSearchData(currentQuery, currentPage)
+        mainUseCase.getSearchData(currentQuery, page)
             .onSuccess { result ->
                 isLoading = false
+                currentPage = page
                 _state.update { currentState ->
                     when (currentState) {
                         is MainScreenState.Success -> currentState.copy(
