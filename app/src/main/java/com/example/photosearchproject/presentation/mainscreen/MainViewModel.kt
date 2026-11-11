@@ -4,11 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.photosearchproject.domain.usecase.MainUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,19 +28,15 @@ class MainViewModel @Inject constructor(
 
     private var currentPage: Int = FIRST_PAGE
     private var currentQuery: String = DEFAULT_QUERY
-    private var isLoading: Boolean = false
+    private var paginationJob: Job? = null
 
     init {
         viewModelScope.launch {
             searchQueryState
-                .drop(1)
                 .debounce(DEBOUNCE_TIME)
                 .collectLatest {
                     handleSearch(it)
                 }
-        }
-        viewModelScope.launch {
-            fetchData()
         }
     }
 
@@ -54,48 +53,50 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun handleSearch(query: String) {
-        val str = query.ifBlank { DEFAULT_QUERY }
-        if (str == currentQuery && _state.value is MainScreenState.Success) return
-        currentQuery = str
+        val currentQuery = query.ifBlank { DEFAULT_QUERY }
+        if (currentQuery == this.currentQuery && _state.value is MainScreenState.Success) return
+        paginationJob?.cancelAndJoin()
+        this.currentQuery = currentQuery
         currentPage = FIRST_PAGE
         _state.value = MainScreenState.Loading
-        fetchData()
+        fetchData(page = currentPage, query = currentQuery)
     }
 
     private fun handleFetchNextPage() {
-        if (isLoading) return
         val currentState = _state.value as? MainScreenState.Success ?: return
         if (currentState.hasReachedLastPage) return
+        if (paginationJob?.isActive == true) return
         val nextPage = currentPage + 1
-        viewModelScope.launch {
-            fetchData(nextPage)
+        val query = currentQuery
+        paginationJob = viewModelScope.launch {
+            fetchData(page = nextPage, query = query)
         }
     }
 
-    private suspend fun fetchData(page: Int = currentPage) {
-        if (isLoading) return
-        isLoading = true
-        mainUseCase.getSearchData(currentQuery, page)
-            .onSuccess { result ->
-                isLoading = false
-                currentPage = page
-                _state.update { currentState ->
-                    when (currentState) {
-                        is MainScreenState.Success -> currentState.copy(
-                            photos = (currentState.photos + result.photos).distinctBy { it.id },
-                            hasReachedLastPage = !result.hasNextPage
-                        )
+    private suspend fun fetchData(page: Int, query: String) {
+        val result = mainUseCase.getSearchData(query, page)
 
-                        else -> MainScreenState.Success(
-                            photos = result.photos,
-                            hasReachedLastPage = !result.hasNextPage
-                        )
-                    }
+        currentCoroutineContext().ensureActive()
+        if (query != currentQuery) return
+
+        result.onSuccess { result ->
+            currentPage = page
+            _state.update { currentState ->
+                when {
+                    page > FIRST_PAGE && currentState is MainScreenState.Success -> currentState.copy(
+                        photos = (currentState.photos + result.photos).distinctBy { it.id },
+                        hasReachedLastPage = !result.hasNextPage
+                    )
+
+                    else -> MainScreenState.Success(
+                        photos = result.photos,
+                        hasReachedLastPage = !result.hasNextPage
+                    )
                 }
-            }.onFailure { error ->
-                isLoading = false
-                _state.value = MainScreenState.Error(error.message ?: "API Error")
             }
+        }.onFailure { error ->
+            _state.value = MainScreenState.Error(error.message ?: "API Error")
+        }
     }
 
     companion object {
