@@ -38,7 +38,8 @@ object RetrofitModule {
             .addInterceptor(headerInterceptor)
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BODY
+                    level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                    else HttpLoggingInterceptor.Level.NONE
                 })
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
