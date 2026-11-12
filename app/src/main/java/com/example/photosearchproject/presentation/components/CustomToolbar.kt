@@ -1,7 +1,6 @@
 package com.example.photosearchproject.presentation.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -75,7 +74,7 @@ fun CustomToolbar(type: ToolbarType) {
                 Icon(
                     modifier = Modifier
                         .padding(start = ICON_START_PADDING)
-                        .clickable { type.onBack() },
+                        .debounceClickable { type.onBack() },
                     imageVector = Icons.Default.ArrowBack,
                     tint = Color.White,
                     contentDescription = null
