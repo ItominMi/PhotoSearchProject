@@ -1,7 +1,6 @@
 package com.example.photosearchproject.presentation.mainscreen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +35,7 @@ import com.example.photosearchproject.R
 import com.example.photosearchproject.domain.model.Photo
 import com.example.photosearchproject.presentation.components.CustomToolbar
 import com.example.photosearchproject.presentation.components.ToolbarType
+import com.example.photosearchproject.presentation.components.debounceClickable
 import com.example.photosearchproject.presentation.mainscreen.Dimens.HORIZONTAL_PADDING
 import com.example.photosearchproject.presentation.mainscreen.Dimens.ITEM_AUTHOR_TEXT_PADDING
 import com.example.photosearchproject.presentation.mainscreen.Dimens.ITEM_ELEVATION
@@ -177,7 +177,7 @@ fun PhotoItem(photo: Photo, onClick: (String) -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(ITEM_IMAGE_PART_HEIGHT)
-                    .clickable {
+                    .debounceClickable {
                         onClick(photo.originalUrl)
                     },
                 contentScale = ContentScale.FillWidth,
